@@ -62,3 +62,14 @@ vars:=[x1,x2]:
 f:=randpoly(vars,degree=3):
 gbe:=fgb_gbasis_elim([t*f,(1-t)*vars[1],(1-t)*vars[2]],0,[t],vars):
 f:=expand(add(gbe[i]^2,i=1..nops(gbe))):
+
+# compute a parametrization for the limit of crit(pi_{1,2})
+curveLimit:=proc(f, vars)
+    local n, gbe1, gbe2, gbe, u, v, gb:
+    n:=nops(vars):
+    gbe1:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n),u*diff(f,vars[1])-1],0,[u],vars):
+    gbe2:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n),u*diff(f,vars[2])-1],0,[u],vars):
+    gbe:=FGb[fgb_gbasis_elim]([seq(u*v,v in gbe1),seq((1-u)*v,v in gbe2)],0,[u],vars):
+    gb:=FGb[fgb_gbasis_elim]([op(gbe),f],0,vars[1..-3],vars[-2..-1]):
+    return gb:
+end proc:

@@ -1,6 +1,7 @@
-elim_delta:=proc(f,vars,cand,a,verb:=0)
-    local n, u, gbelim, i, v, syselim:
-    n:=nops(vars)-1:
+# simplify the elimination ideal
+elim_delta:=proc(f,vars,cand,u,a,verb:=0)
+    local n, gbelim, i, v, syselim:
+    n:=nops(vars):
     v:=[seq(cat('v',i),i=1..n)]:
     gbelim:=FGb[fgb_gbasis_elim]([seq(u*diff(f,vars[i])-2*a[i]*(vars[i]-v[i]),i=1..n)],0,[u],[op(vars[1..n]),op(v)],{"verb"=verb}):
     syselim:=[]:
@@ -13,15 +14,20 @@ elim_delta:=proc(f,vars,cand,a,verb:=0)
     return syselim:
 end proc:
 
-computeE0:=proc(f,vars,cand,a,verb:=0)
-    local n, u, e, syselim, i, iso, delta, gbe, e0:
-    n:=nops(vars)-1:
+# compute the value of e0
+computeE0:=proc(f,vars,cand,u,a,verb:=0)
+    local e, syselim, i, iso, delta, gbe, e0:
+    # the distance function
+    delta:=add(a[i]*(vars[i]-cand[i])^2,i=1..nops(vars)):
 
-    syselim:=elim_delta(f,vars,cand,a,verb):
+    # simplify the elimination a little bit
+    syselim:=elim_delta(f,vars,cand,u,a,verb):
+
+    # compute the critical values of delta
     # gbe:=FGb[fgb_matrixn_radical]([op(syselim),f,e-delta,cand[-1]],0,[op(vars),:
-    delta:=add(a[i]*(vars[i]-cand[i])^2,i=1..n):
-    gbe:=FGb[fgb_gbasis_elim]([op(syselim),f,e-delta,cand[-1]],0,vars,[e],{"verb"=verb}):
+    gbe:=FGb[fgb_gbasis_elim]([op(syselim),f,e-delta,cand[-1]],0,[op(vars),u],[e],{"verb"=verb}):
     
+    # root isolation step
     iso:=map(rhs,RootFinding[Isolate](gbe[1],e,output='interval')):
     if member([0,0],iso,'i') then:
         if nops(iso) > i then:
