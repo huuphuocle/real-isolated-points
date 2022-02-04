@@ -1,3 +1,16 @@
+# getParam
+getParam:=proc(par, vars)
+    local n, w, dw, V, i, r, s:
+    n:=nops(vars):
+    w:=par[-1]:
+    V:=[seq(0,i=1..n)]:
+    V[-1]:=w:
+    for i from 1 to n-1 do:
+        V[i]:=-coeff(par[i],vars[i],0)/coeff(par[i],vars[i],1):
+    end do:
+    return V:
+end proc:
+
 # rewrite the parametrization 
 rewriteParam:=proc(par, vars)
     local n, w, dw, V, i, r, s:

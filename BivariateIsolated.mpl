@@ -1,23 +1,23 @@
-# limit of a curve
-IsolateBivariate:=proc(w)
+# This file contains functions for isolated points in two variables
+# They are used for the second optimization: limit of curve
+
+# compute the limit of crit(pi_{1,2}): which gives a curve C
+curveLimit:=proc(f, vars)
+    local n, gbe, gb, l, u, v:
+    n:=nops(vars):
+    gbe:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n),l*(u*diff(f,vars[1])-1),(1-l)*(v*diff(f,vars[2])-1)],0,[l,u,v],vars):
+    gb:=FGb[fgb_gbasis]([op(gbe),f],0,vars[1..-3],vars[-2..-1]):
+    return gb:
+end proc:
+
+# now we need to compute the isolated points of the curve C
+bivarIsolated_:=proc(w)
     local gb, isol:
     gb:=fgb_matrixn_radical([w,diff(w,x),diff(w,y)],0,[x,y],0):
     RootFinding[Isolate](gb[-1]):
     return isol:
 end proc:
 
-CurveLimit:=proc(f, vars)
-    local n, gbe, gb, l, u, v:
-    n:=nops(vars):
-    gbe:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n),l*(u*diff(f,vars[1])-1),(1-l)*(v*diff(f,vars[2])-1)],0,[l,u,v],vars):
-    gb:=FGb[fgb_gbasis]([op(gbe),f],0,vars[1..-3],vars[-2..-1]):
-    return gb:
-    # gb1:=FGb[fgb_gbasis]([op(gbe1),],0,vars[1..-3],vars[-2..-1]):
-    # gbe1:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n],0,[u],vars):
-    # gb1:=FGb[fgb_gbasis]([op(gbe1),],0,vars[1..-3],vars[-2..-1]):
-    # gbe2:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n],0,[u],vars):
-    # gb2:=FGb[fgb_gbasis]([op(gbe2),op()],0,vars[1..-3],vars[-2..-1]):
-end proc:
 
 CurveLimit:=proc(f, vars)
     local n, gbe, gbe0, gb, u:
@@ -29,26 +29,9 @@ CurveLimit:=proc(f, vars)
     gb:=FGb[fgb_gbasis_elim]([op(gbe),op(gbe0),f],0,[u],vars,{"verb"=3}):
     gb:=FGb[fgb_gbasis]([op(gbe),op(gbe0),f],0,vars[1..-3],vars[-2..-1]):
     return gb:
-    # gb1:=FGb[fgb_gbasis]([op(gbe1),],0,vars[1..-3],vars[-2..-1]):
-    # gbe1:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n],0,[u],vars):
-    # gb1:=FGb[fgb_gbasis]([op(gbe1),],0,vars[1..-3],vars[-2..-1]):
-    # gbe2:=FGb[fgb_gbasis_elim]([seq(diff(f,vars[i]),i=3..n],0,[u],vars):
-    # gb2:=FGb[fgb_gbasis]([op(gbe2),op()],0,vars[1..-3],vars[-2..-1]):
 end proc:
 
-RewriteParam:=proc(par, vars)
-    local n, w, dw, V, i, r, s:
-    n:=nops(vars):
-    w:=par[-1]:
-    V:=[seq(0,i=1..n)]:
-    V[-1]:=w:
-    for i from 1 to n-1 do:
-        V[i]:=-coeff(par[i],vars[i],0)/coeff(par[i],vars[i],1):
-    end do:
-    return V:
-end proc:
-
-BiCandidates:=proc(f, vars, verb:=0)
+candidates:=proc(f, vars, verb:=0)
     local J1, J2, i, cand, u, gbsolve, par:
 
     J1:=FGb[fgb_gbasis_elim]([diff(f,vars[1]),u*diff(f,vars[2])-1],0,[u],vars,{"verb"=verb}):
