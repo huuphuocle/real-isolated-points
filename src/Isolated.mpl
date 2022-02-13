@@ -21,10 +21,11 @@ isolatedPoints:=proc(f,verb:=0)
 end proc:
 
 isolated_:=proc(f,vars,verb:=0)
-    local u,lf,n,cand,a,appr,l,verified_candidates,e0,boxes,i,st:
+    local u,lf,n,cand,a,appr,l,verified_candidates,e0,boxes,i,st,roll:
     n:=nops(vars):
+    roll:=rand(2..19):
     # define a linear form to use for generic projection
-    lf:=u+add(rand()*vars[i],i=1..n) mod 11:
+    lf:=u+add(roll()*vars[i],i=1..n):
     # start by computing candidates
     #st:=time():
     cand:=candidates(f,vars,u,lf,verb)[1]:

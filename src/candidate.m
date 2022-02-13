@@ -62,11 +62,12 @@ end proc:
 # Computing the zero-dimensional parametrization of the union 
 # of limits of critical points w.r.t. a random projection
 candidates:=proc(f,vars,u,lf,verb:=0)    
-    local J,grad,i,n,cand,sys,gbsolve,gbs1,par,iso,lf2:
+    local J,grad,i,n,cand,sys,gbsolve,gbs1,par,iso,lf2,roll:
     description "This function computes the candidates.":
     # printf("Start computing candidates:\n");
     n:=nops(vars):
-    lf2:=add(rand()*vars[i],i=1..n) mod 11:
+    roll:=rand(2..19):
+    lf2:=vars[1]+add(roll()*vars[i],i=2..n):
     J:=[seq([],i=1..n)]:
     grad:=[seq(diff(f,vars[i]),i=1..n)]:
     J[1]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lf2,vars[i]),i=1..n)],0,[u],vars,{"verb"=verb}):
