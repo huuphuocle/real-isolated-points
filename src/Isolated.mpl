@@ -3,7 +3,7 @@ description "Computing real isolated points of a given hypersurface";
 option package;
 export isolatedPoints:
 local isolated_, # Isolated.mpl
-rewriteParam, candidates, # candidates2, # candidate.m
+rewriteParam, candidates, candidates2, # candidate.m
 elim_delta, computeE0, # e0.m
 boxsize, boxIntersect, approximations, verifyCandidates: # approx.m
 
