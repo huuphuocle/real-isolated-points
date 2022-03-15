@@ -62,23 +62,19 @@ end proc:
 # Computing the zero-dimensional parametrization of the union 
 # of limits of critical points w.r.t. a random projection
 candidates:=proc(f,vars,u,lf,verb:=0)    
-    local J,grad,i,n,cand,sys,gbsolve,gbs1,par,iso,lf2,roll:
+    local J,i,n,cand,sys,gbsolve,gbs1,par,iso,lf2,lf3,roll,cand2:
     description "This function computes the candidates.":
     # printf("Start computing candidates:\n");
     n:=nops(vars):
     roll:=rand(2..19):
     lf2:=vars[1]+add(roll()*vars[i],i=2..n):
-    J:=[seq([],i=1..n)]:
-    grad:=[seq(diff(f,vars[i]),i=1..n)]:
+    lf3:=add(roll()*vars[i],i=1..n):
+    J:=[seq([],i=1..2)]:
     J[1]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lf2,vars[i]),i=1..n)],0,[u],vars,{"verb"=verb}):
-    for i from 2 to n do:
-        sys:=grad:
-        sys[i]:=u*grad[i]-1:
-        # printf("Eliminate for %d\n",i);
-        J[i]:=FGb[fgb_gbasis_elim](sys,0,[u],vars,{"verb"=verb}):
-    end do:
+    J[2]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lf3,vars[i]),i=1..n)],0,[u],vars,{"verb"=verb}):
+
     # printf("Solve the system:\n");
-    gbsolve:=FGb[fgb_matrixn_radical]([f,seq(op(J[i]),i=1..n),lf],0,[op(vars),u],0,{"verb"=verb}):
+    gbsolve:=FGb[fgb_matrixn_radical]([f,seq(op(J[i]),i=1..2),lf],0,[op(vars),u],0,{"verb"=verb}):
     if gbsolve=[] then:
         # printf("There is no candidate.\n");
         return [[],[]]:
@@ -91,7 +87,8 @@ candidates:=proc(f,vars,u,lf,verb:=0)
         else:
             gbs1:=FGb[fgb_matrixn_radical]([op(J[1]),f,lf],0,[op(vars),u],0,{"verb"=verb}):
             cand:=rewriteParam(gbsolve,[op(vars),u]):
-            return [cand,iso,gbs1]:
+            cand2:=rewriteParam(gbs1,[op(vars),u]):
+            return [cand,iso,cand2]:
         end if:
     end if:
 end proc:

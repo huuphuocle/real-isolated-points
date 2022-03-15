@@ -5,7 +5,7 @@ export isolatedPoints:
 local isolated_, # Isolated.mpl
 rewriteParam, candidates, candidates2, # candidate.m
 elim_delta, computeE0, # e0.m
-boxsize, boxIntersect, approximations, verifyCandidates: # approx.m
+boxsize, boxIntersect, approximations, approximations2, verifyCandidates: # approx.m
 
 
 $include "src/candidate.m":
@@ -51,7 +51,7 @@ isolated_:=proc(f,vars,verb:=0)
         e0:=computeE0(f,vars,cand[1],u,a,verb):
         #printf("Finish computing e0. Move to identification.");
         # compute the approximation points with known e0
-        appr:=approximations(cand[1],u,a,e0):
+        appr:=approximations2(cand[1],u,a,e0):
         verified_candidates:=verifyCandidates(f,appr[1],vars):
         boxes:=[seq(appr[1][i],i in verified_candidates)]:
         return [cand[1], boxes]:

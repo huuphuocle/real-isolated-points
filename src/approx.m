@@ -13,7 +13,17 @@ boxsize:=proc(boxes,e0,a)
 end proc:
 
 # compute boxes that isolate the solutions of cand
-approximations:=proc(cand,u,a,e0)
+approximations:=proc(cand,u)
+    local w,iso,boxes,i,l:
+    w:=primpart(cand[-1]):
+    iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
+    l:=nops(iso[1]):
+    boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
+    return [boxes,iso[1]]:
+end proc:
+
+# compute boxes that isolate the solutions of cand when we know e0
+approximations2:=proc(cand,u,a,e0)
     local w,iso,boxes,i,l:
     w:=primpart(cand[-1]):
     iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
@@ -64,3 +74,23 @@ verifyCandidates:=proc(f,boxes,vars)
     end do:
     return lindex:
 end proc:
+
+# HasRealSolutions:=proc(f,vars,ineqs)
+#     local n,lf,gbe,gbsolve:
+#     n:=nops(vars):
+#     if n = 1 then:
+#         # need a function to compute for one variable (maybe use subresultant sequence)
+#         return true:
+#     end if:
+#     lf:=add(rand()*vars[i],i=1..n) mod 11:
+#     gbe:=FGb[fgb_gbasis_elim]([seq(diff(f-u*lf,vars[i]),i=1..n)],0,[u],vars,{"verb"=3}):
+#     gbsolve:=FGb[fgb_matrixn_radical]([op(gbe),f],0,vars,0,{"verb"=3}):
+#     # need a function havepoints to check if a zero-dimensional system has solutions in a hypercube
+#     if not havepoints(gbsolve,ineqs) then:
+#         for i from 1 to n do:
+#             HasRealSolutions(subs(vars[i]=,f),vars,ineqs):
+#             HasRealSolutions(subs(vars[i]=,f),vars,ineqs):
+#         end do:
+#     end if:
+#     return true:
+# end proc:
