@@ -2,7 +2,6 @@
     Input:  par     :   a rational parametrization of output-type of FGb
             vars    :   variables (x1,...,xn,u)
 *)
-
 rewriteParam:=proc(par, vars)
     local n, w, dw, V, i, r, s:
     n:=nops(vars):

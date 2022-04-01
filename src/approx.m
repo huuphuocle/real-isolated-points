@@ -1,4 +1,5 @@
-(*  Check if the diameter of a box is smaller than a given parameter e02 
+(*  Check if the square of a box's diameter is smaller than 
+    a given parameter e0^2 
     Input:  boxes   :   a list of hypercubes in (x1,...,xn)
             e0      :   the constant e0
 *)
@@ -8,7 +9,7 @@ boxsizecheck:=proc(boxes,e0,a)
     for box in boxes do:
         val:=add((box[i][1]-box[i][2])^2,i=1..nops(box)):
         if(val >= e02) then:
-            printf("Need more precision!"):
+            # error "Need more precision!":
             return false:
         end if:        
     end do:
@@ -54,21 +55,39 @@ boxIntersect:=proc(f,box,vars)
     return false:
 end proc:
 
-# compute boxes that isolate the solutions of cand
+(*  Compute boxes that isolate the candidates
+    - Without e0    (for the heursitic)
+    - With e0       (for the deterministic)
+    Input:  cand    :   parametrization
+            u       :   slack variable
+            a       :   coefficients of distance function
+            e0      :   yes here it is
+*) 
+#   TODO:   Optimize the else part
 approximations:=proc(cand,u,a,e0:=0)
-    local w,iso,boxes,i,l:
+    local w,iso,boxes,i,l,e02,prec:
+    prec:=10:
+    w:=cand[-1]:
+    iso:=RootFinding[Isolate](w, digits = prec, constraints = cand[1..-2], output = 'interval'):
+    l:=nops(iso[1]):
+    boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
     if e0 = 0 then:
-        w:=primpart(cand[-1]):
-        iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
+        return [boxes,iso[1]]:
+    fi:
+    while not boxsizecheck(box,e0) do:
+        prec:=prec*2:
+        iso:=RootFinding[Isolate](w, digits = prec, constraints = cand[1..-2], output = 'interval'):
         l:=nops(iso[1]):
         boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
-        return [boxes,iso[1]]:
-    else:
-        error "Not implemented yet!"
+    od:
+    return [boxes,iso[1]]:
 end proc:
 
-# a function that takes f and a list of boxes and 
-# check if those boxes intersect f = 0
+(*  Decide for each box from a list boxes if it intersects f = 0
+    Input:  f       :   a polynomial
+            boxes   :   a list of boxes
+            vars    :   variables
+*)
 verifyCandidates:=proc(f,boxes,vars)
     local i,lindex:
     lindex:=[]:
