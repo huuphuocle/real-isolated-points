@@ -74,7 +74,7 @@ approximations:=proc(cand,u,a,e0:=0)
     if e0 = 0 then:
         return [boxes,iso[1]]:
     fi:
-    while not boxsizecheck(box,e0) do:
+    while not boxsizecheck(boxes,e0) do:
         prec:=prec*2:
         iso:=RootFinding[Isolate](w, digits = prec, constraints = cand[1..-2], output = 'interval'):
         l:=nops(iso[1]):
