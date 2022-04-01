@@ -58,7 +58,7 @@ isolated_:=proc(f,vars,verb:=0)
         appr:=approximations(cand[1],u,a,e0): # Boxes with known e0
         verified_candidates:=verifyCandidates(f,appr[1],vars):
         boxes:=[seq(appr[1][i],i in verified_candidates)]:
-        return [cand[1], boxes]:
+        return ['param' = cand[1], 'boxes' = boxes]:
     end if:
 end proc:
 

@@ -24,7 +24,7 @@ end proc:
             lf      :   linear form of type u + a1*x1 + ... + an*xn
 *)
 candidates:=proc(f,vars,u,lf,verb:=0)    
-    local J,i,j,n,par_cand,sys,gbsolve,gbs1,par,iso,lfA,test_cand:
+    local J,i,j,n,par_cand,sys,gbsolve,gbs1,par,iso,lfA,test_cand,A:
     description "Computes the candidates through limits of critical points.":
     n:=nops(vars):
 
