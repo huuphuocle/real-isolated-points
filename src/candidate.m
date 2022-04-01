@@ -1,16 +1,8 @@
-# getParam:=proc(par, vars)
-#     local n, w, dw, V, i, r, s:
-#     n:=nops(vars):
-#     w:=par[-1]:
-#     V:=[seq(0,i=1..n)]:
-#     V[-1]:=w:
-#     for i from 1 to n-1 do:
-#         V[i]:=-coeff(par[i],vars[i],0)/coeff(par[i],vars[i],1):
-#     end do:
-#     return V:
-# end proc:
+(*  Rewrite a rational parametrization into a polynomial parametrization
+    Input:  par     :   a rational parametrization of output-type of FGb
+            vars    :   variables (x1,...,xn,u)
+*)
 
-# rewrite the parametrization 
 rewriteParam:=proc(par, vars)
     local n, w, dw, V, i, r, s:
     n:=nops(vars):
@@ -25,70 +17,45 @@ rewriteParam:=proc(par, vars)
     return V:
 end proc:
 
-# Compute the candidates using critical point method
-candidates2:=proc(f,vars,u,lf,verb:=0)
-    local J, grad, i, n, cand, sys, gbsolve, par, iso:
-    description "This function computes the candidates.":
-    # printf("Start computing candidates:\n");
-    n:=nops(vars):
-    J:=[seq([],i=1..n)]:
-    grad:=[seq(diff(f,vars[i]),i=1..n)]:
-
-    for i from 1 to n do:
-        sys:=grad:
-        sys[i]:=u*grad[i]-1:
-        # printf("Eliminate for %d\n",i);
-        J[i]:=FGb[fgb_gbasis_elim](sys,0,[u],vars,{"verb"=verb}):
-    end do:
-    # printf("Solve the system:\n");
-    gbsolve:=FGb[fgb_matrixn_radical]([f,seq(op(J[i]),i=1..n),lf],0,[op(vars),u],0,{"verb"=verb}):
-    if gbsolve=[] then:
-        # printf("There is no candidate.\n");
-        return [[],[]]:
-    else:
-        # printf("Rewrite the candidates.\n");
-        iso := RootFinding[Isolate](gbsolve[-1],u,output='interval'):
-        if nops(iso) = 0 then:
-            # printf("There is no candidate.\n");
-            return [[],[]]:
-        else:
-            cand:=rewriteParam(gbsolve,[op(vars),u]):
-            # printf("Done.\n");
-            return [cand,iso]:
-        end if:
-    end if:
-end proc:
-
-# Computing the zero-dimensional parametrization of the union 
-# of limits of critical points w.r.t. a random projection
+(*  Computing the zero-dimensional parametrization of candidates as
+    the union of limits of critical points w.r.t. a random projection
+    Input:  f       :   polynomial
+            vars    :   variables
+            u       :   slack variable (for shape position)
+            lf      :   linear form of type u + a1*x1 + ... + an*xn
+*)
 candidates:=proc(f,vars,u,lf,verb:=0)    
-    local J,i,n,cand,sys,gbsolve,gbs1,par,iso,lf2,lf3,roll,cand2:
-    description "This function computes the candidates.":
-    # printf("Start computing candidates:\n");
+    local J,i,j,n,par_cand,sys,gbsolve,gbs1,par,iso,lfA,test_cand:
+    description "Computes the candidates through limits of critical points.":
     n:=nops(vars):
-    roll:=rand(2..19):
-    lf2:=vars[1]+add(roll()*vars[i],i=2..n):
-    lf3:=add(roll()*vars[i],i=1..n):
-    J:=[seq([],i=1..2)]:
-    J[1]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lf2,vars[i]),i=1..n)],0,[u],vars,{"verb"=verb}):
-    J[2]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lf3,vars[i]),i=1..n)],0,[u],vars,{"verb"=verb}):
 
-    # printf("Solve the system:\n");
-    gbsolve:=FGb[fgb_matrixn_radical]([f,seq(op(J[i]),i=1..2),lf],0,[op(vars),u],0,{"verb"=verb}):
-    if gbsolve=[] then:
-        # printf("There is no candidate.\n");
+    # Prepare a list of n random linear forms for projecting
+    A:=LinearAlgebra[RandomMatrix](n,n,generator=rand(1..19));
+    while LinearAlgebra[Determinant](A) = 0 do:
+        A:=LinearAlgebra[RandomMatrix](n,n):
+    od:
+    lfA:=LinearAlgebra[Multiply](A,Vector(vars)):
+    J:=[seq([],i=1..n)]:
+
+    # Elimination step to compute limits
+    for i from 1 to nops(J) do:
+        J[i]:=FGb[fgb_gbasis_elim]([seq(diff(u*f-lfA[i],vars[j]),j=1..n)],0,[u],vars,{"verb"=verb}):
+    od:
+
+    # Compute the parametrization of candidates
+    gbsolve:=FGb[fgb_matrixn_radical]([f,seq(op(J[i]),i=1..nops(J)),lf],0,[op(vars),u],0,{"verb"=verb}):
+    if gbsolve=[] then:         # No candidate
         return [[],[]]:
-    else:
-        # printf("Rewrite the candidates.\n");
-        iso := RootFinding[Isolate](gbsolve[-1],u,output='interval'):
-        if nops(iso) = 0 then:
-            # printf("There is no candidate.\n");
+    else:                       # Rewrite the candidates
+        iso := RootFinding[Isolate](gbsolve[-1],u,output='interval'):   # Isolate u-coordinates of candidates
+        if nops(iso) = 0 then:  # No candidate
             return [[],[]]:
-        else:
+        else:                   
+            par_cand:=rewriteParam(gbsolve,[op(vars),u]):   # The parametrization of candidates
+            # Compute the test set for candidates
             gbs1:=FGb[fgb_matrixn_radical]([op(J[1]),f,lf],0,[op(vars),u],0,{"verb"=verb}):
-            cand:=rewriteParam(gbsolve,[op(vars),u]):
-            cand2:=rewriteParam(gbs1,[op(vars),u]):
-            return [cand,iso,cand2]:
+            test_cand:=rewriteParam(gbs1,[op(vars),u]):
+            return [par_cand,iso,test_cand]:
         end if:
     end if:
 end proc:

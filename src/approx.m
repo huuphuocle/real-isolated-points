@@ -1,5 +1,8 @@
-# check if the diameter of a box is smaller than e02 
-boxsize:=proc(boxes,e0,a)
+(*  Check if the diameter of a box is smaller than a given parameter e02 
+    Input:  boxes   :   a list of hypercubes in (x1,...,xn)
+            e0      :   the constant e0
+*)
+boxsizecheck:=proc(boxes,e0,a)
     local box,val,i,e02:
     e02:=e0^2:
     for box in boxes do:
@@ -12,29 +15,15 @@ boxsize:=proc(boxes,e0,a)
     return true:    
 end proc:
 
-# compute boxes that isolate the solutions of cand
-approximations:=proc(cand,u)
-    local w,iso,boxes,i,l:
-    w:=primpart(cand[-1]):
-    iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
-    l:=nops(iso[1]):
-    boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
-    return [boxes,iso[1]]:
-end proc:
-
-# compute boxes that isolate the solutions of cand when we know e0
-approximations2:=proc(cand,u,a,e0)
-    local w,iso,boxes,i,l:
-    w:=primpart(cand[-1]):
-    iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
-    l:=nops(iso[1]):
-    boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
-    return [boxes,iso[1]]:
-end proc:
-
-# a function to decide emptiness of f = 0 with a box B
+(*  Decide the emptiness of f = 0 with a box B
+    Input:  f       :   a polynomial
+            box     :   a box
+            vars    :   variables
+*) 
 boxIntersect:=proc(f,box,vars)
     local n,new_f,new_vars,res,b,ineqs,i:
+    
+    # Remove degenerate sides from the box
     new_vars:=[]:
     new_f:=f:
     for i from 1 to nops(vars) do:
@@ -45,9 +34,12 @@ boxIntersect:=proc(f,box,vars)
         end if:
     end do:
     n:=nops(new_vars):
-    new_f:=primpart(expand(new_f)):
-    # b contains the boundaries of the box
+    new_f:=primpart(new_f):
+
+    # b is the set of inequalities defining the simplified box
     b:=[seq(vars[i] > box[i][1],i in new_vars),seq(vars[i] < box[i][2],i in new_vars)]:
+
+    # We check the intersection of f with each side of the box
     for i from 1 to n do:
         ineqs:=[op(b[1..(i-1)]),op(b[(i+1)..(n+i-1)]),op(b[(n+i+1)..-1])]:
         res:=RAG[HasRealSolutions]([new_f=0,vars[new_vars[i]] = box[new_vars[i]][1],op(ineqs)]):
@@ -60,6 +52,19 @@ boxIntersect:=proc(f,box,vars)
         end if:
     end do:
     return false:
+end proc:
+
+# compute boxes that isolate the solutions of cand
+approximations:=proc(cand,u,a,e0:=0)
+    local w,iso,boxes,i,l:
+    if e0 = 0 then:
+        w:=primpart(cand[-1]):
+        iso:=RootFinding[Isolate](w, constraints = cand[1..-2], output = 'interval'):
+        l:=nops(iso[1]):
+        boxes:=[seq(map(rhs,iso[2][i]),i=1..l)]:
+        return [boxes,iso[1]]:
+    else:
+        error "Not implemented yet!"
 end proc:
 
 # a function that takes f and a list of boxes and 

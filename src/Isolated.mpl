@@ -3,17 +3,19 @@ description "Computing real isolated points of a given hypersurface";
 option package;
 export isolatedPoints:
 local isolated_, # Isolated.mpl
-rewriteParam, candidates, candidates2, # candidate.m
+rewriteParam, candidates, # candidate.m
 elim_delta, computeE0, # e0.m
-boxsize, boxIntersect, approximations, approximations2, verifyCandidates: # approx.m
+boxsizecheck, boxIntersect, approximations, verifyCandidates: # approx.m
 
 
 $include "src/candidate.m":
 $include "src/approx.m":
 $include "src/e0.m":
 
-# the exported function
-# output: [cand (parametrization), boxes]
+(*  Exported function: Wrapper of isolated_
+    Input:  f   :   a polynomial in x1,...,xn  
+    Output: [parametrization_cand, boxes]
+*)
 isolatedPoints:=proc(f,verb:=0)
     local vars:
     vars:=convert(indets(f),list):
@@ -27,31 +29,33 @@ isolated_:=proc(f,vars,verb:=0)
     # define a linear form to use for generic projection
     lf:=u+add(roll()*vars[i],i=1..n):
     # start by computing candidates
-    #st:=time():
+
+    # cand = [par_cand,iso,test_cand]
     cand:=candidates(f,vars,u,lf,verb):
-    #print(time()-st);
-    if cand[1] = [] then:
-        # if there is no candidate, we return
+
+    if cand[1] = [] then: # No candidate
         return [[],[]]:
     else:
-        # choose coefficients a for the distance function
+        # Coefficients a for the distance function
         a:=[seq(1,i=1..n)]: # a:=[seq(rand(),i=1..n)]:
-        # optimization should go here
-        # approximations needs to compute boxes suitable for heuristic tests
-        appr:=approximations(cand[1],u):
+        
+        # Heuristic tests
+        appr:=approximations(cand[1],u,a):  # Boxes for heuristic tests
         l:=nops(appr[2]):
-        # if a box does not intersect f, 
+
+        # If a box does not intersect f, 
         # that box corresponds to an isolated point
         verified_candidates:=verifyCandidates(f,appr[1],vars):
+
         if nops(verified_candidates) = l then:
-            return [cand[1],appr[1]]:
+            return [cand[1],appr[1]]:   # Expected to finish here
         end if:
-        # if optimizations failed, we compute e0 (super slow)
-        #printf("Start computing e0:");
+
+        # If heuristic failed, we compute e0 (super slow)
         e0:=computeE0(f,vars,cand[1],u,a,verb):
-        #printf("Finish computing e0. Move to identification.");
-        # compute the approximation points with known e0
-        appr:=approximations2(cand[1],u,a,e0):
+
+        # Deterministic identification
+        appr:=approximations(cand[1],u,a,e0): # Boxes with known e0
         verified_candidates:=verifyCandidates(f,appr[1],vars):
         boxes:=[seq(appr[1][i],i in verified_candidates)]:
         return [cand[1], boxes]:
